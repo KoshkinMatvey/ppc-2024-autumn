@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  ubuntu-gcc-build:
+  ubuntu-clang-build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -16,12 +16,14 @@ jobs:
       run: |
         sudo add-apt-repository ppa:ubuntu-toolchain-r/test
         sudo apt-get update
-        sudo apt-get install gcc-12 g++-12
         sudo apt-get install cppcheck ninja-build
         sudo apt-get install mpich libmpich* mpi* openmpi-bin
         sudo apt-get install libomp-dev
         sudo apt-get install valgrind
         python3 -m pip install xlsxwriter
+        wget https://apt.llvm.org/llvm.sh
+        chmod u+x llvm.sh
+        sudo ./llvm.sh 18 all
     - name: ccache
       uses: hendrikmuhs/ccache-action@v1.2
       with:
@@ -35,14 +37,14 @@ jobs:
         -D USE_FUNC_TESTS=ON -D USE_PERF_TESTS=ON
         -D CMAKE_BUILD_TYPE=RELEASE
       env:
-        CC: gcc-12
-        CXX: g++-12
+        CC: clang-18
+        CXX: clang++-18
     - name: Ninja build
       run: |
         cmake --build build
       env:
-        CC: gcc-12
-        CXX: g++-12
+        CC: clang-18
+        CXX: clang++-18
     - name: Run perf tests
       run: |
         source scripts/generate_perf_results.sh
